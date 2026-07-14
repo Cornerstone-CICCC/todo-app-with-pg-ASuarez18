@@ -244,8 +244,9 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:3000/todos";
         input.value = "";
         // Preppend the new todo to the list
         const newTodo = await res.json();
-        todosContainer.innerHTML =
-          todoCardHTML(newTodo) + todosContainer.innerHTML;
+        // todosContainer.innerHTML =
+        //   todoCardHTML(newTodo) + todosContainer.innerHTML;
+        fetchTodos();
       }
     });
 
