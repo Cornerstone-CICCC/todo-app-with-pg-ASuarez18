@@ -23,8 +23,6 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:3000/todos";
     >
       <h1 class="text-4xl font-bold">Todo App</h1>
       <form
-        action=`${API}`
-        method="POST"
         id="add-todo-form"
         class="flex gap-2 w-full"
       >
@@ -53,8 +51,14 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:3000/todos";
     const $ = (id) => document.getElementById(id);
 
     const todosContainer = $("todos-container");
-    // const form = document.getElementById("add-todo-form");
+    const form = $("add-todo-form");
 
+		/**
+		 * @component todoCardHTML
+		 * @description Generates the HTML for a single todo card.
+		 * @param todo - The todo object containing id and task properties.
+		 * @returns {string} - The HTML string for the todo card.
+		 */
 		const todoCardHTML = (todo) => `
     <div class="flex items-center gap-4 p-4 border border-gray-300 rounded-lg shadow-sm">
       <input
@@ -77,6 +81,12 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:3000/todos";
       </div>
     </div>`;
 
+		/**
+		 * @function render
+		 * @description Renders the list of todos in the todosContainer.
+		 * @param todos - An array of todo objects to be rendered.
+		 * @returns {void} - Only updates the DOM, does not return a value.
+		 */
     const render = (todos) => {
       todosContainer.innerHTML = "";
 
@@ -85,6 +95,11 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:3000/todos";
 			});
     };
 
+		/**
+		 * @function fetchTodos
+		 * @description Fetches the list of todos from the API and renders them.
+		 * @returns {Promise<void>} - A promise that resolves when the todos have been fetched
+		 */
 		const fetchTodos = async () => {
 			const res = await fetch(API);
 			const todos = await res.json();
@@ -92,27 +107,28 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:3000/todos";
 		};
 
 		fetchTodos();
-    // form.addEventListener("submit", async (e) => {
-    //   e.preventDefault();
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    //   const input = document.getElementById("new-todo");
-    //   const valueOfTask = input.value.trim();
+      const input = $("task");
+      const valueTask = input.value.trim();
 
-    //   if (!valueOfTask) return;
+      if (!valueTask) return;
 
-    //   const res = await fetch(`${API}/todos`, {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json", // Indica al backend que envías JSON
-    //     },
-    //     // 🌟 Aseguramos que la clave se llame "task" para que req.body.task exista
-    //     body: JSON.stringify({ task: valueOfTask }),
-    //   });
+      const res = await fetch(`${API}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ task: valueTask }),
+      });
 
-    //   if (res.ok) {
-    //     input.value = "";
-    //     // Código para actualizar tu lista...
-    //   }
-    // });
+      if (res.ok) {
+        input.value = "";
+				// Preppend the new todo to the list
+				const newTodo = await res.json();
+				todosContainer.innerHTML = todoCardHTML(newTodo) + todosContainer.innerHTML;
+      }
+    });
   </script>
 </html>
