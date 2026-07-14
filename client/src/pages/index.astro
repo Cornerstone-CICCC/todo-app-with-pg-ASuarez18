@@ -1,17 +1,87 @@
 ---
+import "../styles/global.css";
+import { SquarePen, Trash2 } from "@lucide/astro";
 
+const API = import.meta.env.PUBLIC_API_URL || "http://localhost:3000/todos";
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>To Do List</title>
+  </head>
+  <body
+    class="bg-gray-100 text-gray-900 flex flex-col items-center justify-start min-h-screen p-10"
+  >
+    <section
+      id="app"
+      class="bg-white flex flex-col gap-4 items-center p-6 rounded shadow-md w-full max-w-7xl"
+    >
+      <h1 class="text-4xl font-bold">Todo App</h1>
+      <form
+        action=`${API}`
+        method="POST"
+        id="add-todo-form"
+        class="flex gap-2 w-full"
+      >
+        <input
+          type="text"
+          name="task"
+          id="task"
+          class="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-gray-500/30 focus:border-gray-500/30"
+          placeholder="Add a new todo"
+          required
+        />
+        <button
+          type="submit"
+          id="add-todo-btn"
+          class="px-4 py-2 bg-gray-900 text-white rounded-lg text-lg font-semibold"
+          >Add Todo</button
+        >
+      </form>
+      <div id="todos-container" class="flex flex-col gap-2 w-full">
+        <!-- Todos will be rendered here -->
+        <!--
+        <div class="flex items-center gap-4 p-4 border border-gray-300 rounded-lg	shadow-sm">
+          <input type="checkbox" name="" id="" />
+          <label for="" class="text-lg"></label>
+          <div class="ml-auto flex gap-4">
+            <button><SquarePen size={24} stroke-width={1.5}/></button>
+            <button><Trash2 size={24} stroke-width={1.5}/></button>
+          </div>
+        </div>
+				-->
+      </div>
+    </section>
+  </body>
+  <!-- <script>
+    const form = document.getElementById("add-todo-form");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const input = document.getElementById("new-todo");
+      const valueOfTask = input.value.trim();
+
+      if (!valueOfTask) return;
+
+      const res = await fetch(`${API}/todos`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json", // Indica al backend que envías JSON
+        },
+        // 🌟 Aseguramos que la clave se llame "task" para que req.body.task exista
+        body: JSON.stringify({ task: valueOfTask }),
+      });
+
+      if (res.ok) {
+        input.value = "";
+        // Código para actualizar tu lista...
+      }
+    });
+  </script> -->
 </html>
