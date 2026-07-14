@@ -84,7 +84,7 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:3000/todos";
      * @returns {string} - The HTML string for the todo card in edit mode.
      */
     const todoCardEditHTML = (todo) => `
-    <form class="flex items-center gap-4 p-0 w-full todo-card-edit">
+    <form class="flex items-center gap-2 p-0 w-full todo-card-edit">
 			<input
 				type="text"
 				name="task-edit"
@@ -98,6 +98,10 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:3000/todos";
 				id="add-todo-btn"
 				class="px-4 py-2 bg-gray-900 text-white rounded-lg text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity"
 				>Save</button>
+			<button
+				id="add-todo-btn"
+				class="px-4 py-2 bg-gray-900 text-white rounded-lg text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity cancel-edit"
+				>Cancel</button>
 		</form>`;
 
     /**
@@ -138,34 +142,45 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:3000/todos";
       const todoElement = document
         .querySelector(`[data-edit="${id}"]`)
         .closest(".todo-card");
+      const originalTask = todoElement.querySelector("label").textContent;
       todoElement.innerHTML = todoCardEditHTML({
         id,
-        task: todoElement.querySelector("label").textContent,
+        task: originalTask,
       });
 
-			const editForm = todoElement.querySelector(".todo-card-edit");
-			editForm.addEventListener("submit", async (e) => {
-				e.preventDefault();
+      const editForm = todoElement.querySelector(".todo-card-edit");
+      editForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-				const input = editForm.querySelector("input[name='task-edit']");
-				
-				const valueTask = input.value.trim();
+        const input = editForm.querySelector("input[name='task-edit']");
 
-				if (!valueTask) return;
+        const valueTask = input.value.trim();
 
-				const res = await fetch(`${API}/rename/${id}`, {
-					method: "PUT",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({ task: valueTask }),
-				});
+        if (!valueTask) return;
 
-				if (res.ok) {
-					const updatedTodo = await res.json();
-					todoElement.outerHTML = todoCardHTML(updatedTodo);
-				}
-			});
+        const res = await fetch(`${API}/rename/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ task: valueTask }),
+        });
+
+        if (res.ok) {
+          const updatedTodo = await res.json();
+          todoElement.outerHTML = todoCardHTML(updatedTodo);
+        }
+      });
+
+      const cancelBtn = editForm.querySelector(".cancel-edit");
+      cancelBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        // Re-render the original todo card
+        todoElement.outerHTML = todoCardHTML({
+          id,
+          task: originalTask,
+        });
+      });
     };
 
     /**
@@ -222,10 +237,10 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:3000/todos";
         await handleDelete(todoId);
       }
 
-			// > Edit todo
-			if (btn.dataset.edit) {
-				await handleEdit(todoId);
-			}
+      // > Edit todo
+      if (btn.dataset.edit) {
+        await handleEdit(todoId);
+      }
     });
 
     fetchTodos();
