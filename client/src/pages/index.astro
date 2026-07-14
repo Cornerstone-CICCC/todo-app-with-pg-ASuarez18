@@ -45,43 +45,74 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:3000/todos";
       </form>
       <div id="todos-container" class="flex flex-col gap-2 w-full">
         <!-- Todos will be rendered here -->
-        <!--
-        <div class="flex items-center gap-4 p-4 border border-gray-300 rounded-lg	shadow-sm">
-          <input type="checkbox" name="" id="" />
-          <label for="" class="text-lg"></label>
-          <div class="ml-auto flex gap-4">
-            <button><SquarePen size={24} stroke-width={1.5}/></button>
-            <button><Trash2 size={24} stroke-width={1.5}/></button>
-          </div>
-        </div>
-				-->
+
       </div>
     </section>
   </body>
-  <!-- <script>
-    const form = document.getElementById("add-todo-form");
+  <script is:inline define:vars={{ API }}>
+    const $ = (id) => document.getElementById(id);
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
+    const todosContainer = $("todos-container");
+    // const form = document.getElementById("add-todo-form");
 
-      const input = document.getElementById("new-todo");
-      const valueOfTask = input.value.trim();
+		const todoCardHTML = (todo) => `
+    <div class="flex items-center gap-4 p-4 border border-gray-300 rounded-lg shadow-sm">
+      <input
+        type="checkbox"
+        name="${todo.id}"
+        id="${todo.id}"
+        class="appearance-none h-5 w-5 border border-gray-900 rounded
+            checked:bg-gray-800 checked:border-transparent focus:outline-none
+            relative flex items-center justify-center
+            checked:after:content-['✓'] checked:after:text-white checked:after:text-sm checked:after:font-bold"
+      />
+      <label for="${todo.id}" class="text-lg">${todo.task}</label>
+      <div class="ml-auto flex gap-4">
+        <button data-edit="${todo.id}" class="cursor-pointer hover:opacity-70 transition-opacity">
+          <img src="/square-pen.svg" alt="Edit" class="w-6 h-6" />
+        </button>
+        <button data-delete="${todo.id}" class="cursor-pointer hover:opacity-70 transition-opacity">
+          <img src="/trash-2.svg" alt="Delete" class="w-6 h-6" />
+        </button>
+      </div>
+    </div>`;
 
-      if (!valueOfTask) return;
+    const render = (todos) => {
+      todosContainer.innerHTML = "";
 
-      const res = await fetch(`${API}/todos`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json", // Indica al backend que envías JSON
-        },
-        // 🌟 Aseguramos que la clave se llame "task" para que req.body.task exista
-        body: JSON.stringify({ task: valueOfTask }),
-      });
+			todos.forEach((todo) => {
+				todosContainer.innerHTML += todoCardHTML(todo);
+			});
+    };
 
-      if (res.ok) {
-        input.value = "";
-        // Código para actualizar tu lista...
-      }
-    });
-  </script> -->
+		const fetchTodos = async () => {
+			const res = await fetch(API);
+			const todos = await res.json();
+			render(todos);
+		};
+
+		fetchTodos();
+    // form.addEventListener("submit", async (e) => {
+    //   e.preventDefault();
+
+    //   const input = document.getElementById("new-todo");
+    //   const valueOfTask = input.value.trim();
+
+    //   if (!valueOfTask) return;
+
+    //   const res = await fetch(`${API}/todos`, {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json", // Indica al backend que envías JSON
+    //     },
+    //     // 🌟 Aseguramos que la clave se llame "task" para que req.body.task exista
+    //     body: JSON.stringify({ task: valueOfTask }),
+    //   });
+
+    //   if (res.ok) {
+    //     input.value = "";
+    //     // Código para actualizar tu lista...
+    //   }
+    // });
+  </script>
 </html>
