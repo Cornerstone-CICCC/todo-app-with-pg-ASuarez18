@@ -77,18 +77,18 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:3000/todos";
       </div>
     </div>`;
 
-		/**
-		 * @component todoCardEditHTML
-		 * @description Generates the HTML for a single todo card in edit mode.
-		 * @param todo - The todo object containing id and task properties.
-		 * @returns {string} - The HTML string for the todo card in edit mode.
-		 */
+    /**
+     * @component todoCardEditHTML
+     * @description Generates the HTML for a single todo card in edit mode.
+     * @param todo - The todo object containing id and task properties.
+     * @returns {string} - The HTML string for the todo card in edit mode.
+     */
     const todoCardEditHTML = (todo) => `
-    <form class="flex items-center gap-4 p-4 border border-gray-300 rounded-lg shadow-sm">
+    <form class="flex items-center gap-4 p-0 w-full todo-card-edit">
 			<input
 				type="text"
-				name="task"
-				id="task"
+				name="task-edit"
+				id="task-edit-${todo.id}"
 				value="${todo.task}"
 				class="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-gray-500/30 focus:border-gray-500/30"
 				placeholder="Task"
@@ -114,6 +114,12 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:3000/todos";
       });
     };
 
+    /**
+     * @function handleDelete
+     * @description Handles the deletion of a todo item by sending a DELETE request to the API
+     * @param id - The ID of the todo item to be deleted
+     * @returns {Promise<void>} - A promise that resolves when the todo has been deleted and removed from the DOM
+     */
     const handleDelete = async (id) => {
       const res = await fetch(`${API}/${id}`, {
         method: "DELETE",
@@ -126,6 +132,40 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:3000/todos";
           .closest(".todo-card");
         todoElement.remove();
       }
+    };
+
+    const handleEdit = async (id) => {
+      const todoElement = document
+        .querySelector(`[data-edit="${id}"]`)
+        .closest(".todo-card");
+      todoElement.innerHTML = todoCardEditHTML({
+        id,
+        task: todoElement.querySelector("label").textContent,
+      });
+
+			const editForm = todoElement.querySelector(".todo-card-edit");
+			editForm.addEventListener("submit", async (e) => {
+				e.preventDefault();
+
+				const input = editForm.querySelector("input[name='task-edit']");
+				
+				const valueTask = input.value.trim();
+
+				if (!valueTask) return;
+
+				const res = await fetch(`${API}/rename/${id}`, {
+					method: "PUT",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ task: valueTask }),
+				});
+
+				if (res.ok) {
+					const updatedTodo = await res.json();
+					todoElement.outerHTML = todoCardHTML(updatedTodo);
+				}
+			});
     };
 
     /**
@@ -170,18 +210,23 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:3000/todos";
       }
     });
 
-		todosContainer.addEventListener("click", async (e) => {
-			const btn = e.target.closest("button");
-			if (!btn) return;
+    todosContainer.addEventListener("click", async (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
 
-			const todoElement = btn.closest("[data-delete], [data-edit]");
-			const todoId = todoElement?.dataset.delete || todoElement?.dataset.edit;
+      const todoElement = btn.closest("[data-delete], [data-edit]");
+      const todoId = todoElement?.dataset.delete || todoElement?.dataset.edit;
 
-			// > Delete todo
-			if (btn.dataset.delete) {
-				await handleDelete(todoId);
+      // > Delete todo
+      if (btn.dataset.delete) {
+        await handleDelete(todoId);
+      }
+
+			// > Edit todo
+			if (btn.dataset.edit) {
+				await handleEdit(todoId);
 			}
-		});
+    });
 
     fetchTodos();
   </script>
