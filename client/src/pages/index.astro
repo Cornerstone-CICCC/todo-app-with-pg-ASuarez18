@@ -61,12 +61,14 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:3000/todos";
         type="checkbox"
         name="${todo.id}"
         id="${todo.id}"
+				data-complete="${todo.id}"
+				${todo.done ? "checked" : ""}
         class="appearance-none h-5 w-5 border border-gray-900 rounded
             checked:bg-gray-800 checked:border-transparent focus:outline-none
             relative flex items-center justify-center
             checked:after:content-['✓'] checked:after:text-white checked:after:text-sm checked:after:font-bold"
       />
-      <label for="${todo.id}" class="text-lg">${todo.task}</label>
+      <label for="${todo.id}" class="text-lg ${todo.done ? "line-through text-gray-900/70" : ""}">${todo.task}</label>
       <div class="ml-auto flex gap-4">
         <button data-edit="${todo.id}" class="cursor-pointer hover:opacity-70 transition-opacity">
           <img src="/square-pen.svg" alt="Edit" class="w-6 h-6" />
@@ -138,6 +140,12 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:3000/todos";
       }
     };
 
+		/**
+		 * @function handleEdit
+		 * @description Handles the editing of a todo item by replacing the todo card with an edit form and sending a PUT request to the API when the form is submitted.
+		 * @param id - The ID of the todo item to be edited
+		 * @returns {Promise<void>} - A promise that resolves when the todo has been updated and the DOM has been updated with the new todo card or the original todo card if the edit was canceled
+		 */
     const handleEdit = async (id) => {
       const todoElement = document
         .querySelector(`[data-edit="${id}"]`)
@@ -183,6 +191,22 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:3000/todos";
       });
     };
 
+		const handleToggleComplete = async (id, completed) => {
+			const res = await fetch(`${API}/toggle/${id}`, {
+				method: "PUT",
+			});
+
+			if (res.ok) {
+				const updatedTodo = await res.json();
+				const todoElement = document
+					.querySelector(`[data-complete="${id}"]`)
+					.closest(".todo-card");
+				todoElement.querySelector("label").textContent = updatedTodo.task;
+				todoElement.querySelector("label").classList.toggle("line-through", updatedTodo.done);
+				todoElement.querySelector("label").classList.toggle("text-gray-900/70", updatedTodo.done);
+			}
+		};
+
     /**
      * @function fetchTodos
      * @description Fetches the list of todos from the API and renders them.
@@ -226,20 +250,28 @@ const API = import.meta.env.PUBLIC_API_URL || "http://localhost:3000/todos";
     });
 
     todosContainer.addEventListener("click", async (e) => {
-      const btn = e.target.closest("button");
-      if (!btn) return;
+      const target = e.target;
 
-      const todoElement = btn.closest("[data-delete], [data-edit]");
-      const todoId = todoElement?.dataset.delete || todoElement?.dataset.edit;
+      const btn = target.closest("button");
+      if (btn) {
+        const todoId = btn.dataset.delete || btn.dataset.edit;
 
-      // > Delete todo
-      if (btn.dataset.delete) {
-        await handleDelete(todoId);
+        if (btn.dataset.delete) {
+          await handleDelete(todoId);
+        }
+
+        if (btn.dataset.edit) {
+          await handleEdit(todoId);
+        }
+        return;
       }
 
-      // > Edit todo
-      if (btn.dataset.edit) {
-        await handleEdit(todoId);
+      const checkbox = target.closest("input[data-complete]");
+      if (checkbox) {
+        const todoId = checkbox.dataset.complete;
+        const isCompleted = checkbox.checked;
+
+        await handleToggleComplete(todoId, isCompleted);
       }
     });
 
